@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
+    <title>Multiplagem</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KyZXEAg3QhqLMpG8r+8fhAXLRk2vvoC2f3B09zVXn8CA5QIVfZOJ3BCsw2P0p/We" crossorigin="anonymous">
+
+    <!-- jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/1.4.1/jspdf.debug.js" integrity="sha384-THVO/sM0mFD9h7dfSndI6TS0PgAGavwKvB5hAxRRvc0o9cPLohB0wb/PTA7LdUHs" crossorigin="anonymous"></script>
+</head>
+<body>
+    <h1>Multiplagem</h1>
+
+    <form>
+        Altura (cm): <input id="input_altura" class="form-control" type="text" value="4.8"/>
+        <br>
+        Largura (cm): <input id="input_largura" class="form-control" type="text" value="6.82"/>
+
+        Nome Arquivo de Saida: <input id="input_nome_arquivo_saida" class="form-control" type="text" placeholder="Insira o nome do arquivo de saida"/>
+        <hr>
+        Opções Avançadas (configuracoes padröes definidas): 
+        Borda Altura (cm): <input id="input_borda_altura" class="form-control" type="text" value="0.16"/>
+        <br>
+        Borda Largura (cm): <input id="input_borda_largura" class="form-control" type="text" value="0.16"/>
+        <br>
+        Espaco entre as imagens (cm): <input id="input_espaco" class="form-control" type="text" value="0.1"/> 
+
+        <hr>
+        Imagem: <input id="input_imagem" type="file" class="form-control" placeholder="Seleciona o arquivo da imagem" onchange="lerImagem(this)"/>
+        <br>
+        <center>
+            <img id="imagem_selecionada"/>
+            <br>
+            <br>
+            <button id="button_enviar" class="btn btn-primary" type="button">Gerar Arquivo</button>
+        </center>
+    </form>
+
+    <style>
+
+    </style>
+    <script>
+        // Tamanho da pagina
+        const PAGINA_ALTURA_MM = 297;
+        const PAGINA_LARGURA_MM = 210;
+        
+        // Input_elements
+        let input_altura_element = document.getElementById("input_altura");
+        let input_largura_element = document.getElementById("input_largura");
+
+        let input_nome_saida_arquivo_elemente = document.getElementById("input_nome_arquivo_saida");
+
+        let input_borda_altura_element = document.getElementById("input_borda_altura");
+        let input_borda_largura_element = document.getElementById("input_borda_largura");
+
+        let input_espaco_element = document.getElementById("input_espaco");
+
+        // Button element
+        let button_enviar_element = document.getElementById("button_enviar");
+        
+        // Imagem element
+        let imagem_element = document.getElementById("imagem_selecionada");
+
+        let caminho_arquivo = '';
+
+        function lerImagem(input_file) {
+            let reader = new FileReader();
+
+            reader.onloadend = function() {
+                caminho_arquivo = reader.result;
+                
+                imagem_element.setAttribute('width', input_altura_element.value * 50);
+                imagem_element.setAttribute('heigth', input_altura_element.value * 50);
+                imagem_element.src = caminho_arquivo;
+            }
+
+            reader.readAsDataURL(input_file.files[0]);
+        }
+
+        button_enviar_element.addEventListener("click", (event) => {
+            let doc = new jsPDF(); // Iniciando novo pdf
+
+            let input_imagem_element = document.getElementById("input_imagem");
+            
+            // Pegando valores do formulario
+            let altura_atual = input_altura_element.value * 10;
+            let largura_atual = input_largura_element.value * 10;
+            let espaco_atual = input_espaco_element.value * 10;
+            let borda_altura = input_borda_altura_element.value * 10;
+            let borda_largura = input_borda_largura_element.value * 10;
+            let path_imagem_atual = input_imagem_element.value;
+            let nome_arquivo_saida_input = input_nome_saida_arquivo_elemente.value;
+
+            // Cordenadas x,y do arquivo onde devem ser inseridas as imagem (a comecar na borda)
+            let x = borda_largura;
+            let y = borda_altura;
+
+            while ((y + altura_atual + borda_altura) <= PAGINA_ALTURA_MM) {
+               
+                x = borda_largura;
+               
+                while ((x + largura_atual + borda_largura) <= PAGINA_LARGURA_MM) {
+                    
+                    doc.addImage(caminho_arquivo, "JPEG", x, y, largura_atual, altura_atual);
+
+                    x += espaco_atual + largura_atual;
+                }
+
+                y += espaco_atual + altura_atual;
+            }
+
+            if (nome_arquivo_saida_input != undefined && nome_arquivo_saida_input != '') {
+                
+                doc.save(nome_arquivo_saida_input + ".pdf");
+
+            } else {
+
+                doc.save("arquivo_multiplagem.pdf");
+            }
+        })
+    </script>
+</body>
+</html>
